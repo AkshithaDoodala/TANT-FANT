@@ -1,0 +1,1300 @@
+/*
+    C PROGRAM TO WRITE CODE FOR GAME NAMED TANT FANT
+    Written By : Akshitha Doodala (1602-20-737-003)
+                 K Sai Shruthi (1602-20-737-036)
+    Date       : 01-04-2021
+*/
+#include <stdio.h>
+#include<stdlib.h>
+char pos[9]={'1','2','3','4','5','6','7','8','9'};
+typedef struct Player_info
+{
+    char token;
+    char name[25];
+}Plyr;
+Plyr contestant[2];
+FILE *fp;
+void coders_name();
+void rules();
+void token_change(char *,char *,char [],char [] );
+void game();
+void display_board();
+void marking_tokens(int,char,int);
+int moving_positions(int,int *,int *);
+int moving_condition(int,int,int);
+void moving_tokens(int,int,int);
+int check_win();
+int main()
+{
+    fp =fopen("winners.txt","a");
+    coders_name();
+    rules();
+    game();
+    fclose(fp);
+    return 0;
+}
+void coders_name()
+{
+    printf("\033[1;93m");
+    printf("                            \t\t*------------------------------------------*                              \n");
+    printf("                            \t\t|                                          |                              \n");
+    printf("                            \t\t|               CODE  BY  IT-A             |                              \n");
+    printf("                            \t\t|                                          |                              \n");
+    printf("                            \t\t|     ");      
+    printf("\033[1;97m");
+    printf("AKSHITHA DOODALA (1602-20-737-003)");
+    printf("\033[0;31m");
+    printf("\033[1;93m");
+    printf("   |                              \n");
+    printf("                            \t\t|       ");
+    printf("\033[1;97m"); 
+    printf("K SAI SHRUTHI(1602-20-737-036)");
+    printf("\033[0;31m");
+    printf("\033[1;93m");
+    printf("     |                              \n");
+    printf("                            \t\t|                                          |                              \n");
+    printf("                            \t\t*------------------------------------------*                              \n");
+    printf("\033[0;31m");
+}
+void game()
+{
+    int choice,player=1,i,limit=1,res1,from,to,res,play,key;
+    char mark;
+    for(i=0;i<9;i++)
+    {
+        pos[i]=(i+1)+'0';
+    }
+    printf("\033[1;91m");
+    printf("Enter Player 1's name: ");
+    printf("\033[0m");
+    printf("\033[1;97m");
+    scanf("%s", contestant[0].name);
+    printf("\033[0;31m");
+    printf("\033[1;91m");
+    printf("%s,Choose any character token : ",contestant[0].name);
+    printf("\033[0m");
+    fflush(stdin);
+    printf("\033[1;97m");
+    scanf(" %c", &(contestant[0].token));
+    printf("\033[0;31m");
+    printf("\033[1;91m");
+    printf("Enter Player 2's name: ");
+    printf("\033[0m");
+    printf("\033[1;97m");
+    scanf("%s", contestant[1].name);
+    printf("\033[0;31m");
+    printf("\033[1;91m");
+    printf("%s,Choose any character token : ",contestant[1].name);
+    printf("\033[0m");
+    fflush(stdin);
+    printf("\033[1;97m");
+    scanf(" %c", &(contestant[1].token)); 
+    printf("\033[0;31m");
+    token_change(&contestant[0].token,&contestant[1].token,contestant[0].name,contestant[1].name);
+    printf("\033[1;95m");
+    printf("ALL THE BEST %s and %s \n\t\tGAME STARTS NOW!!\t\t\n",contestant[0].name,contestant[1].name);
+    printf("\033[0m");
+    i=-1;
+    while(i==-1)
+    {
+        display_board();
+        player=(player%2)?1:2;
+        if(limit<=6)
+        {
+            printf("\033[1;91m");
+            printf("%s, Enter position of your token : ",contestant[player-1].name);
+            printf("\033[0m");
+            printf("\033[1;97m");
+            scanf("%d",&choice);
+            printf("\033[0;31m");
+            printf("\n");
+            mark=(player==1)?contestant[0].token:contestant[1].token;
+            marking_tokens(choice,mark,player);
+        }
+        else
+        {
+            moving_positions(player,&from,&to);
+            res1=moving_condition(player,from,to);
+            while(res1!=100)
+            {
+                moving_positions(player,&from,&to);
+                res1=moving_condition(player,from,to);
+            }
+            moving_tokens(player,from,to);
+        }
+        i=check_win();
+        if(i==1)
+        {
+          fprintf(fp,"%s has won the match\n",contestant[player-1].name);
+        }
+        player++;
+        limit++;
+    }
+    display_board();
+    if(i==1)
+    {
+        printf("\033[1;96m");
+        printf("%s won this match\nCongragulations👏👏👏👏\n",contestant[player-2].name);
+        printf("\033[0m");
+        printf("\033[1;94m");
+        printf("Hope you enjoyed playing this game\n");
+        printf("Want to play again??\nThen enter 1.\nIf wanted to exit then enter 5.\n");
+        printf("\033[0m");
+        printf("\033[1;97m");
+        scanf("%d",&play);
+        printf("\033[0;31m");
+        if(play==1)
+        {
+             game();
+        }
+         else if(play==5)
+        {
+           key=69;
+        }
+        else
+        {
+             int k=play;
+             while(k!=1||k!=5)
+             {
+                 if(!(k==1||k==5))
+                 {
+                     printf("\033[1;96m");
+                     printf("Enter Valid number.\n");
+                     printf("\033[0m");
+                     printf("\033[1;97m");
+                     scanf("%d",&play);
+                     printf("\033[0;31m");
+                     k=play;
+                 }
+                 if(k==1)
+                 {
+                     game();
+                 }
+                 else if(k==5)
+                 {
+                     key=69;
+                     break;
+                 }
+             }
+        }
+        while(key==69)
+        {
+            break;
+        }
+    }
+}
+void token_change(char *token1,char *token2,char name1[],char name2[])//Test case for same tokens choosen
+{
+    if(*token2==*token1)
+    {
+        char test_token2;
+        test_token2=*token2;
+        printf("\033[1;95m");
+        printf("CHOOSE ANOTHER TOKEN.\nThe token you have selected is taken by %s.\n",name1);
+        printf("\033[0m");
+        printf("\033[1;91m");
+        printf("%s,Choose any character token : ",name2);
+        printf("\033[0m");
+        fflush(stdin);
+        printf("\033[1;97m");
+        scanf(" %c",&test_token2);
+        printf("\033[0;31m");
+        *token1=*token1;
+        *token2=test_token2;
+        token_change(token1,token2,name1,name2);
+    }       
+}
+void rules()
+{
+    printf("\033[1,96m");
+    printf("  ******************************************************************TANT FANT************************************************************\n");
+    printf("  *                                                                                                                                     *\n");
+    printf("  *      TANT FANT is a two-player abstract strategy game from India. It is related to tic-tac-toe, but                                 *\n"); 
+    printf("  *  more closely related to three men's morris, Nine Holes, Achi, shisima, and Dara, because pieces are                                *\n");
+    printf("  *  moved on the board to create the 3 in-a-row. It is an alignment game.                                                              *\n");
+    printf("  *                                                                                                                                     *\n");
+    printf("  *                                                                                                                                     *\n");
+    printf("  *  RULES FOR THE GAME:                                                                                                                *\n");
+    printf("  *                                                                                                                                     *\n");
+    printf("  *  1. Each player will be getting three tokens of their selected symbol respectively.                                                 *\n");
+    printf("  *  2. During first three turns of each players, they need to mark 3 tokens on different given positions of the  board respectively.   *\n");
+    printf("  *  3. At the time of first three turns of each player, no player should overlap the other players token position.                     *\n");
+    printf("  *  4. After playing first three turns players can move their respective token one space at a time following the pattern on the board. *\n");
+    printf("  *  5. Only one token can be moved per turn and you need to choose your token only during your turn.                                   *\n");
+    printf("  *  6. Player can only move their token to the selected position, if there is a vacant space available at that position.               *\n");
+    printf("  *  7. If the player's tokens are 3 in a row either horizontally, vertically or diagonally then that player will win the match.        *\n");
+    printf("  *  8. Once the game is started, Player can only exit if the match is Won                                                              *\n");
+    printf("  *                                                                                                                                     *\n");
+    printf("  *                                                                                                                                     *\n");
+    printf("  ***************************************************************************************************************************************\n");
+    printf("\033[0m");
+}
+void display_board()
+{
+    printf("\033[1;92m");
+    printf("\t\t\t\t\t\t%c",pos[0]);
+    printf("\033[0m");
+    printf("_________");
+    printf("\033[1;92m");
+    printf("%c",pos[1]);
+    printf("\033[0m");
+    printf("__________");
+    printf("\033[1;92m");
+    printf("%c \n",pos[2]);
+    printf("\033[0m");
+    printf("\t\t\t\t\t\t|*        |        * |\n");
+    printf("\t\t\t\t\t\t|   *     |     *    |\n");
+    printf("\t\t\t\t\t\t|      *  |  *       |\n");
+    printf("\033[1;92m");
+    printf("\t\t\t\t\t\t%c",pos[3]);
+    printf("\033[0m");
+    printf("_________");
+    printf("\033[1;92m");
+    printf("%c",pos[4]);
+    printf("\033[0m");
+    printf("__________");
+    printf("\033[1;92m");
+    printf("%c \n",pos[5]);
+    printf("\033[0m");
+    printf("\t\t\t\t\t\t|        *|  *       |\n");
+    printf("\t\t\t\t\t\t|     *   |     *    | \n");
+    printf("\t\t\t\t\t\t|  *      |        * |\n");
+    printf("\033[1;92m");
+    printf("\t\t\t\t\t\t%c",pos[6]);
+    printf("\033[0m");
+    printf("_________");
+    printf("\033[1;92m");
+    printf("%c",pos[7]);
+    printf("\033[0m");
+    printf("__________");
+    printf("\033[1;92m");
+    printf("%c \n",pos[8]);
+    printf("\033[0m");
+}
+void marking_tokens(int choice,char mark,int player) //Test case for marking tokens 
+{
+    if(choice==1 && pos[0]=='1')
+        pos[0]=mark;
+    else if(choice==2 && pos[1]=='2')
+        pos[1]=mark;
+    else if(choice==3 && pos[2]=='3')
+        pos[2]=mark;
+    else if(choice==4 && pos[3]=='4')
+        pos[3]=mark;
+    else if(choice==5 && pos[4]=='5')
+        pos[4]=mark;
+    else if(choice==6 && pos[5]=='6')
+        pos[5]=mark;
+    else if(choice==7 && pos[6]=='7')
+        pos[6]=mark;
+    else if(choice==8 && pos[7]=='8')
+        pos[7]=mark;
+    else if(choice==9 && pos[8]=='9')
+        pos[8]=mark;
+    else if((choice==1||choice==2||choice==3||choice==4||choice==5||choice==6||choice==7||choice==8||choice==9)&&(pos[choice-1]!=choice+'0'))
+    {
+        printf("\033[1;95m");
+        printf("INVALID!!!\nNo vacant position available in your selected position.\n");
+        printf("\033[0;31m");
+        printf("\033[1;91m");
+        printf("%s, Enter position of your token : ",contestant[player-1].name);
+        printf("\033[0m");
+        printf("\033[1;97m");
+        scanf("%d",&choice);
+        printf("\033[0;31m");
+        printf("\n");
+        mark=(player==1)?contestant[0].token:contestant[1].token;
+        marking_tokens(choice,mark,player);
+    }
+    else
+    {
+        printf("\033[1;95m");
+        printf("INVALID!!!!\nEnter Valid position from 1-9.\n");
+        printf("\033[0;31m");
+        printf("\033[1;91m");
+        printf("%s, Enter position of your token : ",contestant[player-1].name);
+        printf("\033[0m");
+        printf("\033[1;97m");
+        scanf("%d",&choice);
+        printf("\033[0;31m");
+        printf("\n");
+        mark=(player==1)?contestant[0].token:contestant[1].token;
+        marking_tokens(choice,mark,player);
+    }
+}
+int moving_positions(int player,int *from,int *to)
+{
+    int a,b;
+    printf("\n");
+    printf("\033[1;91m");
+    printf("%s,Enter from where to where you want to move your token\n",contestant[player-1].name);
+    printf("\033[0;31m");
+    printf("\033[1;93m");
+    printf("From & To : ");
+    printf("\033[0;31m");
+    printf("\033[1;97m");
+    scanf("%d %d",&a,&b); 
+    printf("\033[0;31m");
+    printf("\n");
+    *from=a;
+    *to=b;
+}
+int moving_condition(int player,int from,int to)
+{
+    switch(from)//If from position is occupied with respective player token and to position is vacant
+    {       
+        case 1:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          { 
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"From\" and \"To\".\n2. The \"From\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }  
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==2||to==4||to==5)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==3||to==6||to==7||to==8||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }
+            else if(to==2||to==4||to==5)
+            {
+                return 100;
+            }
+            else if(to==3||to==6||to==7||to==8||to==9)
+            {
+                printf("\033[1;95m");
+                printf("INVALD!!!\nYour Token cannot move to the given \"To\" position as it can only take one move. \n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==1)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          }    
+        }
+        case 2:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          { 
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"From\" and \"To\".\n2. The \"From\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }  
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==1||to==5||to==3)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==6||to==3||to==4||to==7||to==8||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nmaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }  
+            else if(to==1||to==5||to==3)
+            {
+                return 100;
+            }
+            else if(to==6||to==3||to==4||to==7||to==8||to==9)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the given \"To\" position as it can only take one move.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==2)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+             else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          }    
+        }
+        case 3:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          {  
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"From\" and \"To\"\n2. The \"From\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }  
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==2||to==5||to==6)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==1||to==4||to==7||to==8||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }  
+            else if(to==2||to==5||to==6)
+            {
+                return 100;
+            }
+            else if(to==1||to==4||to==7||to==8||to==9)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the given \"To\" position as it can only take one move.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==3)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          }    
+        }
+        case 4:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          {    
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"From\" and \"to\"\n2. The \"From\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }  
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==1||to==5||to==7)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==2||to==3||to==6||to==8||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }  
+            else if(to==1||to==5||to==7)
+            {
+                return 100;
+            }
+            else if(to==2||to==3||to==6||to==8||to==9)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the given \"To\" position as it can only take one move.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==4)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          }    
+        }
+        case 5:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          { 
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"From\" and \"To\"\n2. The \"From\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }    
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==1||to==2||to==3||to==4||to==6||to==7||to==8||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==5)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }  
+            else if(to==1||to==2||to==3||to==4||to==6||to==7||to==8||to==9)
+            {
+                return 100;
+            }
+            else if(to==5)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          } 
+        }
+        case 6:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          {     
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"From\" and \"To\"\n2. The \"From\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }  
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+               if(to==3||to==5||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==2||to==4||to==7||to==8||to==1)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }  
+            else if(to==3||to==5||to==9)
+            {
+                return 100;
+            }
+            else if(to==2||to==4||to==7||to==8||to==1)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the given \"To\" position as it can only take one move.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==6)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+             else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          }    
+        }
+        case 7:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          { 
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"From\" and \"To\"\n2. The \"From\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }    
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==4||to==5||to==8)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==2||to==3||to==6||to==1||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }  
+            else if(to==4||to==5||to==8)
+            {
+                return 100;
+            }
+            else if(to==2||to==3||to==6||to==1||to==9)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the given \"To\" position as it can only take one move.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==7)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }    
+          }     
+        }
+        case 8:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          { 
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"from\" and \"To\"\n2. The \"from\" and \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }    
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==7||to==5||to==9)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(to==2||to==3||to==6||to==1||to==4)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }  
+            else if(to==7||to==5||to==9)
+            {
+                return 100;
+            }
+            else if(to==2||to==3||to==6||to==1||to==4)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the given \"To\" position as it can only take one move.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==8)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          }        
+        }
+        case 9:
+        {
+          if((pos[from-1]==((player==1)?contestant[0].token:contestant[1].token)))
+          {    
+            if((from==to)&&(pos[to-1]!=to+'0'))
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nMaybe\n1. You have entered same position for both \"from\" and \"to\"\n2. The \"from\" and \"to\" position you have entered is occupied by your token or your opponet's.\n");
+                printf("\033[0;31m");
+                return 99;
+            }  
+            else if((from!=to)&&(pos[to-1]!=to+'0'))
+            {
+                if(to==6||to==5||to==8)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\n The \"To\" position you have entered is occupied by your token or your opponet's.\n");
+                    printf("\033[0;31m");
+                return 99;
+                }
+                else if(to==2||to==3||to==4||to==7||to==1)
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You made a double move or wrong pattern move.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }
+            else if(to==6||to==5||to==8)
+            {
+                return 100;
+            }
+            else if(to==2||to==3||to==4||to==7||to==1)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the given \"To\" position as it can only take one move.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if(to==9)
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\nYour Token cannot move to the same position.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!\n\"To\" position you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+          }    
+        }
+        default : //All other test cases
+        {   
+            if((from>9||from<1)&&(to>9||to<1)) 
+            {
+                printf("\033[1;95m");
+                printf("INVALID!!!!\n\"From\" and \"To\" positions you entered does not exist in the given board.\n");
+                printf("\033[0;31m");
+                return 99;
+            }
+            else if((from>9||from<1)&&(to<=9||to>=1))
+            {
+                if(pos[to-1]==to+'0')
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!!\nMaybe\n1. \"From\" position you entered does not exist in the given board.\n2. \"To\" position you entered is occupied or vacant.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+                else if(pos[to-1]!=to+'0')
+                {
+                    printf("\033[1;95m");
+                    printf("INVALID!!!!\n1. \"From\" position you entered does not exist in the given board\n2. The \"To\" position \nyou have entered is occupied by your token or  by your opponent's.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            } 
+            else if((pos[from-1]!=from+'0')&&(pos[to-1]!=to+'0'))
+            {
+                if(to<=9||to>=1)
+                {          
+                    printf("\033[1;95m");
+                    printf("INVALID!!!\nMaybe\n1. The \"To\" position you have entered is occupied by your token or your opponet's.\n2. You cannot move other player token.\n3. The \"To\" position you have entered is not valid.\n");
+                    printf("\033[0;31m");
+                    return 99;
+                }
+            }
+            else if((pos[from-1]!=from+'0')&&(pos[to-1]==to+'0'))
+            {
+                switch(from)
+                {
+                    case 1 :
+                    {
+                        if(to==2||to==4||to==5)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==3||to==6||to==7||to==8||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==1)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    } 
+                    case 2 :
+                    {
+                        if(to==1||to==5||to==3)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==6||to==4||to==7||to==8||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==2)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                    case 3 :
+                    {
+                        if(to==2||to==5||to==6)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==1||to==4||to==7||to==8||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==3)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                    case 4 :
+                    {
+                        if(to==1||to==5||to==7)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==2||to==3||to==6||to==8||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==4)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                    case 5 :
+                    {
+                        if(to==1||to==2||to==3||to==4||to==6||to==7||to==8||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==5)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                    case 6 :
+                    {
+                        if(to==3||to==5||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==1||to==2||to==4||to==7||to==8)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==6)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                    case 7 :
+                    {
+                        if(to==4||to==5||to==8)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==3||to==2||to==1||to==6||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==7)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                    case 8 :
+                    {
+                        if(to==7||to==5||to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==1||to==2||to==3||to==4||to==6)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==8)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                    case 9 :
+                    {
+                        if(to==6||to==5||to==8)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\nYou cannot move other players token. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==1||to==2||to==3||to==4||to==7)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALD!!!\n1. You cannot move other players token. \n2. You cannot make a double move or wrong pattern move. \n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else if(to==9)
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. Your Token cannot move to the same position.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                        else
+                        {
+                            printf("\033[1;95m");
+                            printf("INVALID!!!\n1. You cannot move other players token.\n2. \"To\" position you entered does not exist in the given board.\n");
+                            printf("\033[0;31m");
+                            return 99;
+                        }
+                    }
+                }
+            }
+            else if((from==to)&&(pos[from-1]==from+'0')&&(pos[to-1]==to+'0'))
+            {
+                 printf("\033[1;95m");
+                 printf("INVALID!!!\nThe entered positions of \"From\" and \"To\" are same and vacant.\n");
+                 printf("\033[0;31m");
+                 return 99;
+            }
+            else if((from!=to)&&(pos[from-1]==from+'0')&&(pos[to-1]==to+'0'))
+            {
+                 printf("\033[1;95m");
+                 printf("INVALID!!!\nMaybe\n1. Both the \"From\" and \"To\" positions are vacant.\n2. You made a double move or wrong pattern move.n");\
+                 printf("\033[0;31m");
+                 return 99;
+            }
+            else if((from<=9||from>=1)&&(pos[from-1]==from+'0')&&(pos[to-1]!=to+'0'))
+            {
+                 if((to<=9||to>=1))
+                 { 
+                     printf("\033[1;95m");
+                     printf("INVALID!!!\nYou cannot move from vacant space\nMaybe\n1. The \"To\" position you have entered is invalid.\n2. The \"To\" position you have entered is occupied by your token or by your opponent's.\n");
+                     printf("\033[0;31m");
+                     return 99;
+                 }
+            }
+            else if((from<=9||from>=1)&&(to<=9||to>=1)&&(pos[from-1]==from+'0')&&(pos[to-1]!=to+'0'))
+            {
+                 printf("\033[1;95m");
+                 printf("INVALID!!!\nMaybe\n1. The \"From\" position you have entered is vacant.\n2. You made a double move or wrong pattern move.\n3. The \"To\" position you have entered is occupied by your token or by your opponent's.\n");
+                 printf("\033[0;31m");
+                 return 99;
+            }
+            
+        }
+    }  
+       
+}
+void moving_tokens(int player,int from,int to)
+{
+    if(pos[from-1]==((player==1)?contestant[0].token:contestant[1].token))  //Checking for respective player token at from position
+    {
+      if(pos[to-1]==to+'0')//Checking vacancy at to position
+      {
+         pos[from-1]=from+'0';  //checking vacant places
+         pos[to-1]=((player==1)?contestant[0].token:contestant[1].token);
+      }
+    }  
+}
+int check_win()
+{
+    if(pos[0]==pos[1]&&pos[1]==pos[2])
+        return 1;
+    else if(pos[3]==pos[4]&&pos[4]==pos[5])        //Horizontal winning condition
+        return 1;
+    else if(pos[6]==pos[7]&&pos[7]==pos[8])
+        return 1;
+        
+    else if(pos[0]==pos[3]&&pos[3]==pos[6])
+        return 1;
+    else if(pos[1]==pos[4]&&pos[4]==pos[7])        //Vertical winning condition
+        return 1;
+    else if(pos[2]==pos[5]&&pos[5]==pos[8])
+        return 1;
+        
+    else if(pos[0]==pos[4]&&pos[4]==pos[8])
+        return 1;                                   //Diagnol winning condition
+    else if(pos[2]==pos[4]&&pos[4]==pos[6])
+        return 1;
+        
+    else
+        return -1;                              
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
